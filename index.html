@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock Swipe Converter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --card: #1a1a1a;
+    --card-border: #2a2a2a;
+    --accent: #00aaff;
+    --accent-glow: rgba(0, 170, 255, 0.15);
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --text-muted: #555;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #0077cc);
+    margin-bottom: 16px;
+  }
+
+  .logo svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  /* Input section */
+  .input-section {
+    margin-bottom: 32px;
+  }
+
+  .input-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .date-input {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 18px;
+    font-family: inherit;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .date-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .date-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .format-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .hint-chip {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .hint-chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  /* Error */
+  .error-msg {
+    background: rgba(255, 60, 60, 0.1);
+    border: 1px solid rgba(255, 60, 60, 0.25);
+    color: #ff6b6b;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  .error-msg.visible {
+    display: block;
+  }
+
+  /* MMDDYY breakdown label */
+  .breakdown-label {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  .breakdown-label span {
+    color: var(--accent);
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Digit cards */
+  .digit-cards {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  .digit-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 16px 8px;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: cardIn 0.3s ease both;
+  }
+
+  .digit-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .digit-card:nth-child(1) { animation-delay: 0.05s; }
+  .digit-card:nth-child(2) { animation-delay: 0.1s; }
+  .digit-card:nth-child(3) { animation-delay: 0.15s; }
+  .digit-card:nth-child(4) { animation-delay: 0.2s; }
+  .digit-card:nth-child(5) { animation-delay: 0.25s; }
+  .digit-card:nth-child(6) { animation-delay: 0.3s; }
+
+  .digit-card .label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .digit-card .number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  .digit-card .arrows {
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .digit-card .dirs {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.3;
+  }
+
+  /* Full sequence */
+  .sequence-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .sequence-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .sequence-text {
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .copy-btn:hover {
+    background: #33bbff;
+  }
+
+  .copy-btn:active {
+    transform: scale(0.97);
+  }
+
+  .copy-btn.copied {
+    background: #22cc88;
+  }
+
+  .copy-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Results wrapper — hidden initially */
+  .results {
+    display: none;
+  }
+
+  .results.visible {
+    display: block;
+  }
+
+  /* Legend */
+  .legend {
+    margin-top: 8px;
+  }
+
+  .legend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    transition: border-color 0.15s;
+    user-select: none;
+  }
+
+  .legend-header:hover {
+    border-color: var(--accent);
+  }
+
+  .legend-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  .legend-chevron {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: var(--text-dim);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.2s;
+  }
+
+  .legend.open .legend-chevron {
+    transform: rotate(180deg);
+  }
+
+  .legend-body {
+    display: none;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  .legend.open .legend-header {
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .legend.open .legend-body {
+    display: block;
+  }
+
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .legend-item {
+    text-align: center;
+    padding: 12px 4px;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+
+  .legend-item:hover {
+    border-color: var(--card-border);
+  }
+
+  .legend-item .num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .legend-item .arr {
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+
+  .legend-item .desc {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Clock visual */
+  .clock-visual {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--card-border);
+  }
+
+  .clock-svg {
+    width: 200px;
+    height: 200px;
+  }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    .container { padding: 32px 16px 60px; }
+    h1 { font-size: 22px; }
+    .digit-cards { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .digit-card { padding: 14px 8px; }
+    .digit-card .number { font-size: 28px; }
+    .digit-card .arrows { font-size: 20px; }
+    .digit-card .dirs { font-size: 10px; }
+    .sequence-text { font-size: 20px; letter-spacing: 2px; }
+    .legend-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .legend-item .num { font-size: 16px; }
+    .legend-item .arr { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <h1>Clock Swipe Converter</h1>
+    <p class="subtitle">Convert any date into a joystick directional sequence</p>
+  </div>
+
+  <!-- Input -->
+  <div class="input-section">
+    <label class="input-label" for="dateInput">Enter a date</label>
+    <div class="input-wrapper">
+      <input
+        type="text"
+        id="dateInput"
+        class="date-input"
+        placeholder="March 24, 1995"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </div>
+    <div class="format-hints">
+      <span class="hint-chip" data-example="March 24, 1995">March 24, 1995</span>
+      <span class="hint-chip" data-example="11/05/78">11/05/78</span>
+      <span class="hint-chip" data-example="03-24-95">03-24-95</span>
+      <span class="hint-chip" data-example="032495">032495</span>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="breakdown-label" id="breakdownLabel"></div>
+    <div class="digit-cards" id="digitCards"></div>
+    <div class="sequence-section">
+      <div class="sequence-label">Full Sequence</div>
+      <div class="sequence-text" id="sequenceText"></div>
+      <button class="copy-btn" id="copyBtn" type="button">
+        <svg viewBox="0 0 24 24" id="copyIcon">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        <span id="copyLabel">Copy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend" id="legend">
+    <div class="legend-header" id="legendToggle">
+      <span class="legend-title">Reference — All 10 Digits</span>
+      <svg class="legend-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="legend-body">
+      <div class="legend-grid" id="legendGrid"></div>
+      <div class="clock-visual">
+        <svg class="clock-svg" viewBox="0 0 200 200">
+          <!-- Clock circle -->
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#2a2a2a" stroke-width="1.5"/>
+          <!-- Tick marks and digits -->
+          <g id="clockDigits" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central"></g>
+          <!-- Center dot -->
+          <circle cx="100" cy="100" r="3" fill="#00aaff"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Clock-face digit mapping
+  const DIGIT_MAP = {
+    0: { dirs: ['up', 'up'],       arrows: '↑↑' },
+    1: { dirs: ['up', 'right'],    arrows: '↑→' },
+    2: { dirs: ['right', 'up'],    arrows: '→↑' },
+    3: { dirs: ['right', 'right'], arrows: '→→' },
+    4: { dirs: ['right', 'down'],  arrows: '→↓' },
+    5: { dirs: ['down', 'right'],  arrows: '↓→' },
+    6: { dirs: ['down', 'down'],   arrows: '↓↓' },
+    7: { dirs: ['down', 'left'],   arrows: '↓←' },
+    8: { dirs: ['left', 'down'],   arrows: '←↓' },
+    9: { dirs: ['left', 'left'],   arrows: '←←' },
+  };
+
+  const MONTHS = {
+    'january': '01', 'february': '02', 'march': '03', 'april': '04',
+    'may': '05', 'june': '06', 'july': '07', 'august': '08',
+    'september': '09', 'october': '10', 'november': '11', 'december': '12',
+    'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+    'jun': '06', 'jul': '07', 'aug': '08', 'sep': '09',
+    'sept': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+  };
+
+  const PART_LABELS = ['M', 'M', 'D', 'D', 'Y', 'Y'];
+
+  function parseDate(input) {
+    const s = input.trim();
+    if (!s) return null;
+
+    // Try pure 6-digit: MMDDYY
+    if (/^\d{6}$/.test(s)) {
+      const mm = s.slice(0, 2), dd = s.slice(2, 4), yy = s.slice(4, 6);
+      if (validMMDD(mm, dd)) return mm + dd + yy;
+    }
+
+    // Try MM/DD/YY or MM-DD-YY or MM.DD.YY
+    const sepMatch = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+    if (sepMatch) {
+      const mm = sepMatch[1].padStart(2, '0');
+      const dd = sepMatch[2].padStart(2, '0');
+      let yy = sepMatch[3];
+      if (yy.length === 4) yy = yy.slice(2);
+      if (validMMDD(mm, dd)) return mm + dd + yy;
+    }
+
+    // Try spelled-out: "March 24, 1995" or "March 24 1995" or "24 March 1995"
+    const spelled = s.toLowerCase().replace(/,/g, '').replace(/\s+/g, ' ').trim();
+    const parts = spelled.split(' ');
+
+    if (parts.length >= 2) {
+      let monthStr, dayStr, yearStr;
+
+      // Month first: March 24 1995
+      if (MONTHS[parts[0]]) {
+        monthStr = parts[0];
+        dayStr = parts[1];
+        yearStr = parts[2] || '00';
+      }
+      // Day first: 24 March 1995
+      else if (parts.length >= 2 && MONTHS[parts[1]]) {
+        monthStr = parts[1];
+        dayStr = parts[0];
+        yearStr = parts[2] || '00';
+      }
+
+      if (monthStr && MONTHS[monthStr]) {
+        const mm = MONTHS[monthStr];
+        const dd = String(parseInt(dayStr, 10)).padStart(2, '0');
+        let yy = String(parseInt(yearStr, 10));
+        if (yy.length === 4) yy = yy.slice(2);
+        yy = yy.padStart(2, '0');
+        if (validMMDD(mm, dd)) return mm + dd + yy;
+      }
+    }
+
+    return null;
+  }
+
+  function validMMDD(mm, dd) {
+    const m = parseInt(mm, 10), d = parseInt(dd, 10);
+    return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+  }
+
+  function renderResults(mmddyy) {
+    const digits = mmddyy.split('');
+    const resultsEl = document.getElementById('results');
+    const cardsEl = document.getElementById('digitCards');
+    const seqEl = document.getElementById('sequenceText');
+    const breakdownEl = document.getElementById('breakdownLabel');
+    const errorEl = document.getElementById('errorMsg');
+
+    errorEl.classList.remove('visible');
+    resultsEl.classList.add('visible');
+
+    // Breakdown label
+    const mm = mmddyy.slice(0, 2), dd = mmddyy.slice(2, 4), yy = mmddyy.slice(4, 6);
+    breakdownEl.innerHTML = `MMDDYY &rarr; <span>${mm}</span> / <span>${dd}</span> / <span>${yy}</span>`;
+
+    // Digit cards
+    cardsEl.innerHTML = '';
+    const arrowParts = [];
+
+    digits.forEach((d, i) => {
+      const info = DIGIT_MAP[parseInt(d, 10)];
+      arrowParts.push(info.arrows);
+
+      const card = document.createElement('div');
+      card.className = 'digit-card';
+      card.style.animationDelay = `${i * 0.05}s`;
+      card.innerHTML = `
+        <div class="label">${PART_LABELS[i]}</div>
+        <div class="number">${d}</div>
+        <div class="arrows">${info.arrows}</div>
+        <div class="dirs">${info.dirs[0]}, ${info.dirs[1]}</div>
+      `;
+      cardsEl.appendChild(card);
+    });
+
+    // Full sequence
+    const fullSeq = arrowParts.join(' ');
+    seqEl.textContent = fullSeq;
+  }
+
+  function showError(msg) {
+    const errorEl = document.getElementById('errorMsg');
+    const resultsEl = document.getElementById('results');
+    errorEl.textContent = msg;
+    errorEl.classList.add('visible');
+    resultsEl.classList.remove('visible');
+  }
+
+  // Input handler with debounce
+  let debounceTimer;
+  document.getElementById('dateInput').addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    const val = this.value;
+    debounceTimer = setTimeout(() => {
+      if (!val.trim()) {
+        document.getElementById('errorMsg').classList.remove('visible');
+        document.getElementById('results').classList.remove('visible');
+        return;
+      }
+      const parsed = parseDate(val);
+      if (parsed) {
+        renderResults(parsed);
+      } else {
+        showError('Could not parse date. Try formats like "March 24, 1995", "03/24/95", "03-24-95", or "032495".');
+      }
+    }, 300);
+  });
+
+  // Hint chips
+  document.querySelectorAll('.hint-chip').forEach(chip => {
+    chip.addEventListener('click', function () {
+      const input = document.getElementById('dateInput');
+      input.value = this.dataset.example;
+      input.dispatchEvent(new Event('input'));
+    });
+  });
+
+  // Copy button
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    const text = document.getElementById('sequenceText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = this;
+      const label = document.getElementById('copyLabel');
+      btn.classList.add('copied');
+      label.textContent = 'Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = 'Copy';
+      }, 1500);
+    });
+  });
+
+  // Legend toggle
+  document.getElementById('legendToggle').addEventListener('click', function () {
+    document.getElementById('legend').classList.toggle('open');
+  });
+
+  // Build legend grid
+  (function buildLegend() {
+    const grid = document.getElementById('legendGrid');
+    for (let i = 0; i <= 9; i++) {
+      const info = DIGIT_MAP[i];
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = `
+        <div class="num">${i}</div>
+        <div class="arr">${info.arrows}</div>
+        <div class="desc">${info.dirs[0]}, ${info.dirs[1]}</div>
+      `;
+      grid.appendChild(item);
+    }
+  })();
+
+  // Build clock SVG
+  (function buildClock() {
+    const g = document.getElementById('clockDigits');
+    const cx = 100, cy = 100, r = 72;
+    for (let i = 0; i <= 9; i++) {
+      // 10 positions, starting at 12 o'clock (top), going clockwise
+      const angle = (i * 36 - 90) * (Math.PI / 180);
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+
+      // Digit text
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', x);
+      text.setAttribute('y', y);
+      text.setAttribute('font-size', '16');
+      text.setAttribute('fill', '#00aaff');
+      text.textContent = i;
+      g.appendChild(text);
+
+      // Arrow text below
+      const info = DIGIT_MAP[i];
+      const arrowText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      arrowText.setAttribute('x', x);
+      arrowText.setAttribute('y', y + 14);
+      arrowText.setAttribute('font-size', '10');
+      arrowText.setAttribute('fill', '#888');
+      arrowText.setAttribute('font-weight', '400');
+      arrowText.textContent = info.arrows;
+      g.appendChild(arrowText);
+
+      // Tick line from circle edge to digit area
+      const tickR1 = 88, tickR2 = 84;
+      const tx1 = cx + tickR1 * Math.cos(angle);
+      const ty1 = cy + tickR1 * Math.sin(angle);
+      const tx2 = cx + tickR2 * Math.cos(angle);
+      const ty2 = cy + tickR2 * Math.sin(angle);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', tx1);
+      line.setAttribute('y1', ty1);
+      line.setAttribute('x2', tx2);
+      line.setAttribute('y2', ty2);
+      line.setAttribute('stroke', '#444');
+      line.setAttribute('stroke-width', '1.5');
+      g.appendChild(line);
+    }
+  })();
+</script>
+</body>
+</html>
