@@ -174,7 +174,7 @@
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 8px;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
 
   .digit-card {
@@ -234,14 +234,117 @@
     line-height: 1.3;
   }
 
+  /* Info section */
+  .info-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    gap: 10px;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .info-row:last-child {
+    border-bottom: none;
+  }
+
+  .info-row.today-row {
+    background: rgba(0, 170, 255, 0.04);
+  }
+
+  .info-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .info-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .info-value.today-val {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .info-value .days-num {
+    color: var(--accent);
+    font-size: 20px;
+  }
+
+  /* Small copy button */
+  .copy-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .copy-sm:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .copy-sm.copied {
+    background: rgba(34, 204, 136, 0.12);
+    border-color: #22cc88;
+    color: #22cc88;
+  }
+
+  .copy-sm svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
   /* Full sequence */
   .sequence-section {
     background: var(--card);
     border: 1px solid var(--card-border);
     border-radius: var(--radius);
-    padding: 24px;
-    text-align: center;
-    margin-bottom: 40px;
+    padding: 20px 20px 16px;
+    margin-bottom: 12px;
+  }
+
+  .seq-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
   }
 
   .sequence-label {
@@ -250,55 +353,64 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-dim);
-    margin-bottom: 14px;
   }
 
   .sequence-text {
-    font-size: 28px;
+    font-size: 26px;
     letter-spacing: 3px;
     color: var(--text);
     word-break: break-all;
     line-height: 1.6;
-    margin-bottom: 16px;
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    text-align: center;
   }
 
-  .copy-btn {
-    display: inline-flex;
+  /* Copy All button */
+  .copy-all-btn {
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: 10px 24px;
-    font-size: 14px;
-    font-weight: 600;
+    width: 100%;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 700;
     font-family: inherit;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    margin-bottom: 32px;
+  }
+
+  .copy-all-btn:hover {
     background: var(--accent);
     color: #000;
-    border: none;
-    border-radius: 100px;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
   }
 
-  .copy-btn:hover {
-    background: #33bbff;
+  .copy-all-btn:active {
+    transform: scale(0.98);
   }
 
-  .copy-btn:active {
-    transform: scale(0.97);
-  }
-
-  .copy-btn.copied {
+  .copy-all-btn.copied {
     background: #22cc88;
+    border-color: #22cc88;
+    color: #000;
   }
 
-  .copy-btn svg {
+  .copy-all-btn svg {
     width: 16px;
     height: 16px;
     fill: none;
     stroke: currentColor;
-    stroke-width: 2;
+    stroke-width: 2.5;
     stroke-linecap: round;
     stroke-linejoin: round;
+    pointer-events: none;
   }
 
   /* Results wrapper — hidden initially */
@@ -434,6 +546,8 @@
     .legend-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
     .legend-item .num { font-size: 16px; }
     .legend-item .arr { font-size: 14px; }
+    .info-value { font-size: 14px; }
+    .info-value .days-num { font-size: 17px; }
   }
 </style>
 </head>
@@ -479,17 +593,64 @@
   <div class="results" id="results">
     <div class="breakdown-label" id="breakdownLabel"></div>
     <div class="digit-cards" id="digitCards"></div>
-    <div class="sequence-section">
-      <div class="sequence-label">Full Sequence</div>
-      <div class="sequence-text" id="sequenceText"></div>
-      <button class="copy-btn" id="copyBtn" type="button">
-        <svg viewBox="0 0 24 24" id="copyIcon">
-          <rect x="9" y="9" width="13" height="13" rx="2"/>
-          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-        </svg>
-        <span id="copyLabel">Copy</span>
-      </button>
+
+    <!-- Info rows -->
+    <div class="info-section">
+      <!-- Today reference (no copy btn) -->
+      <div class="info-row today-row">
+        <div class="info-col">
+          <div class="info-label">Today (New York)</div>
+          <div class="info-value today-val" id="todayValue"></div>
+        </div>
+      </div>
+      <!-- Input date -->
+      <div class="info-row">
+        <div class="info-col">
+          <div class="info-label">Input Date</div>
+          <div class="info-value" id="inputDateValue"></div>
+        </div>
+        <button class="copy-sm" id="copyDateBtn" title="Copy date" type="button">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+      <!-- Days ago -->
+      <div class="info-row">
+        <div class="info-col">
+          <div class="info-label">Days Ago</div>
+          <div class="info-value" id="daysAgoValue"></div>
+        </div>
+        <button class="copy-sm" id="copyDaysBtn" title="Copy days ago" type="button">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+      <!-- Day of week -->
+      <div class="info-row">
+        <div class="info-col">
+          <div class="info-label">Day of Week</div>
+          <div class="info-value" id="dowValue"></div>
+        </div>
+        <button class="copy-sm" id="copyDowBtn" title="Copy day of week" type="button">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
     </div>
+
+    <!-- Sequence -->
+    <div class="sequence-section">
+      <div class="seq-header">
+        <div class="sequence-label">Clock Swipe Sequence</div>
+        <button class="copy-sm" id="copySeqBtn" title="Copy sequence" type="button">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+      <div class="sequence-text" id="sequenceText"></div>
+    </div>
+
+    <!-- Copy All -->
+    <button class="copy-all-btn" id="copyAllBtn" type="button">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="copyAllLabel">Copy All</span>
+    </button>
   </div>
 
   <!-- Legend -->
@@ -502,11 +663,8 @@
       <div class="legend-grid" id="legendGrid"></div>
       <div class="clock-visual">
         <svg class="clock-svg" viewBox="0 0 200 200">
-          <!-- Clock circle -->
           <circle cx="100" cy="100" r="90" fill="none" stroke="#2a2a2a" stroke-width="1.5"/>
-          <!-- Tick marks and digits -->
           <g id="clockDigits" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central"></g>
-          <!-- Center dot -->
           <circle cx="100" cy="100" r="3" fill="#00aaff"/>
         </svg>
       </div>
@@ -538,19 +696,43 @@
     'sept': '09', 'oct': '10', 'nov': '11', 'dec': '12'
   };
 
+  const MONTH_NAMES = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
+  ];
+
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
   const PART_LABELS = ['M', 'M', 'D', 'D', 'Y', 'Y'];
+
+  // Get today's date in New York timezone
+  function getTodayNY() {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+    const parts = fmt.formatToParts(new Date());
+    const get = type => parseInt(parts.find(p => p.type === type).value, 10);
+    return new Date(get('year'), get('month') - 1, get('day'));
+  }
+
+  // Expand 2-digit year
+  function expandYear(yy) {
+    const currentYY = new Date().getFullYear() % 100;
+    return yy <= currentYY ? 2000 + yy : 1900 + yy;
+  }
 
   function parseDate(input) {
     const s = input.trim();
     if (!s) return null;
 
-    // Try pure 6-digit: MMDDYY
+    // Pure 6-digit: MMDDYY
     if (/^\d{6}$/.test(s)) {
       const mm = s.slice(0, 2), dd = s.slice(2, 4), yy = s.slice(4, 6);
       if (validMMDD(mm, dd)) return mm + dd + yy;
     }
 
-    // Try MM/DD/YY or MM-DD-YY or MM.DD.YY
+    // MM/DD/YY or MM-DD-YY or MM.DD.YY
     const sepMatch = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
     if (sepMatch) {
       const mm = sepMatch[1].padStart(2, '0');
@@ -560,26 +742,17 @@
       if (validMMDD(mm, dd)) return mm + dd + yy;
     }
 
-    // Try spelled-out: "March 24, 1995" or "March 24 1995" or "24 March 1995"
+    // Spelled-out: "March 24, 1995" or "24 March 1995"
     const spelled = s.toLowerCase().replace(/,/g, '').replace(/\s+/g, ' ').trim();
     const parts = spelled.split(' ');
 
     if (parts.length >= 2) {
       let monthStr, dayStr, yearStr;
-
-      // Month first: March 24 1995
       if (MONTHS[parts[0]]) {
-        monthStr = parts[0];
-        dayStr = parts[1];
-        yearStr = parts[2] || '00';
+        monthStr = parts[0]; dayStr = parts[1]; yearStr = parts[2] || '00';
+      } else if (parts.length >= 2 && MONTHS[parts[1]]) {
+        monthStr = parts[1]; dayStr = parts[0]; yearStr = parts[2] || '00';
       }
-      // Day first: 24 March 1995
-      else if (parts.length >= 2 && MONTHS[parts[1]]) {
-        monthStr = parts[1];
-        dayStr = parts[0];
-        yearStr = parts[2] || '00';
-      }
-
       if (monthStr && MONTHS[monthStr]) {
         const mm = MONTHS[monthStr];
         const dd = String(parseInt(dayStr, 10)).padStart(2, '0');
@@ -596,6 +769,32 @@
   function validMMDD(mm, dd) {
     const m = parseInt(mm, 10), d = parseInt(dd, 10);
     return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+  }
+
+  function getDateInfo(mmddyy) {
+    const mm = parseInt(mmddyy.slice(0, 2), 10);
+    const dd = parseInt(mmddyy.slice(2, 4), 10);
+    const yy = parseInt(mmddyy.slice(4, 6), 10);
+    const fullYear = expandYear(yy);
+
+    const inputDate = new Date(fullYear, mm - 1, dd);
+    const today = getTodayNY();
+
+    const diffMs = today - inputDate;
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    const dow = DAY_NAMES[inputDate.getDay()];
+    const formattedInput = `${MONTH_NAMES[mm - 1]} ${dd}, ${fullYear}`;
+    const formattedToday = `${MONTH_NAMES[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+
+    let daysLabel;
+    if (diffDays === 0) daysLabel = 'Today';
+    else if (diffDays === 1) daysLabel = '1 day ago';
+    else if (diffDays > 1) daysLabel = `${diffDays.toLocaleString()} days ago`;
+    else if (diffDays === -1) daysLabel = '1 day from now';
+    else daysLabel = `${Math.abs(diffDays).toLocaleString()} days from now`;
+
+    return { formattedInput, formattedToday, daysLabel, diffDays, dow };
   }
 
   function renderResults(mmddyy) {
@@ -620,7 +819,6 @@
     digits.forEach((d, i) => {
       const info = DIGIT_MAP[parseInt(d, 10)];
       arrowParts.push(info.arrows);
-
       const card = document.createElement('div');
       card.className = 'digit-card';
       card.style.animationDelay = `${i * 0.05}s`;
@@ -636,6 +834,27 @@
     // Full sequence
     const fullSeq = arrowParts.join(' ');
     seqEl.textContent = fullSeq;
+
+    // Date info
+    const info = getDateInfo(mmddyy);
+    document.getElementById('todayValue').textContent = info.formattedToday;
+    document.getElementById('inputDateValue').textContent = info.formattedInput;
+
+    const daysEl = document.getElementById('daysAgoValue');
+    if (info.diffDays === 0) {
+      daysEl.textContent = 'Today';
+    } else {
+      const num = Math.abs(info.diffDays).toLocaleString();
+      const suffix = info.diffDays > 0 ? 'days ago' : 'days from now';
+      daysEl.innerHTML = `<span class="days-num">${num}</span> ${suffix}`;
+    }
+    document.getElementById('dowValue').textContent = info.dow;
+
+    // Store data for Copy All
+    resultsEl.dataset.date = info.formattedInput;
+    resultsEl.dataset.days = info.daysLabel;
+    resultsEl.dataset.dow = info.dow;
+    resultsEl.dataset.seq = fullSeq;
   }
 
   function showError(msg) {
@@ -644,6 +863,23 @@
     errorEl.textContent = msg;
     errorEl.classList.add('visible');
     resultsEl.classList.remove('visible');
+  }
+
+  // Generic copy helper
+  function copyText(text, btn, label) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      if (label) {
+        const prev = label.textContent;
+        label.textContent = 'Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); label.textContent = prev; }, 1500);
+      } else {
+        // swap icon to checkmark briefly
+        const origHTML = btn.innerHTML;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = origHTML; }, 1500);
+      }
+    });
   }
 
   // Input handler with debounce
@@ -675,19 +911,32 @@
     });
   });
 
-  // Copy button
-  document.getElementById('copyBtn').addEventListener('click', function () {
-    const text = document.getElementById('sequenceText').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = this;
-      const label = document.getElementById('copyLabel');
-      btn.classList.add('copied');
-      label.textContent = 'Copied!';
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        label.textContent = 'Copy';
-      }, 1500);
-    });
+  // Individual copy buttons
+  document.getElementById('copyDateBtn').addEventListener('click', function () {
+    copyText(document.getElementById('inputDateValue').textContent, this);
+  });
+  document.getElementById('copyDaysBtn').addEventListener('click', function () {
+    const r = document.getElementById('results');
+    copyText(r.dataset.days, this);
+  });
+  document.getElementById('copyDowBtn').addEventListener('click', function () {
+    copyText(document.getElementById('dowValue').textContent, this);
+  });
+  document.getElementById('copySeqBtn').addEventListener('click', function () {
+    copyText(document.getElementById('sequenceText').textContent, this);
+  });
+
+  // Copy All
+  document.getElementById('copyAllBtn').addEventListener('click', function () {
+    const r = document.getElementById('results');
+    const text = [
+      `Date: ${r.dataset.date}`,
+      `Days Ago: ${r.dataset.days}`,
+      `Day of Week: ${r.dataset.dow}`,
+      `Clock Swipe: ${r.dataset.seq}`
+    ].join('\n');
+    const label = document.getElementById('copyAllLabel');
+    copyText(text, this, label);
   });
 
   // Legend toggle
@@ -716,12 +965,10 @@
     const g = document.getElementById('clockDigits');
     const cx = 100, cy = 100, r = 72;
     for (let i = 0; i <= 9; i++) {
-      // 10 positions, starting at 12 o'clock (top), going clockwise
       const angle = (i * 36 - 90) * (Math.PI / 180);
       const x = cx + r * Math.cos(angle);
       const y = cy + r * Math.sin(angle);
 
-      // Digit text
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', x);
       text.setAttribute('y', y);
@@ -730,7 +977,6 @@
       text.textContent = i;
       g.appendChild(text);
 
-      // Arrow text below
       const info = DIGIT_MAP[i];
       const arrowText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       arrowText.setAttribute('x', x);
@@ -741,17 +987,14 @@
       arrowText.textContent = info.arrows;
       g.appendChild(arrowText);
 
-      // Tick line from circle edge to digit area
       const tickR1 = 88, tickR2 = 84;
       const tx1 = cx + tickR1 * Math.cos(angle);
       const ty1 = cy + tickR1 * Math.sin(angle);
       const tx2 = cx + tickR2 * Math.cos(angle);
       const ty2 = cy + tickR2 * Math.sin(angle);
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', tx1);
-      line.setAttribute('y1', ty1);
-      line.setAttribute('x2', tx2);
-      line.setAttribute('y2', ty2);
+      line.setAttribute('x1', tx1); line.setAttribute('y1', ty1);
+      line.setAttribute('x2', tx2); line.setAttribute('y2', ty2);
       line.setAttribute('stroke', '#444');
       line.setAttribute('stroke-width', '1.5');
       g.appendChild(line);
