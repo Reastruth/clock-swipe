@@ -537,7 +537,7 @@
   @media (max-width: 520px) {
     .container { padding: 32px 16px 60px; }
     h1 { font-size: 22px; }
-    .digit-cards { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .digit-cards { gap: 8px; }
     .digit-card { padding: 14px 8px; }
     .digit-card .number { font-size: 28px; }
     .digit-card .arrows { font-size: 20px; }
@@ -703,7 +703,9 @@
 
   const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-  const PART_LABELS = ['M', 'M', 'D', 'D', 'Y', 'Y'];
+  // Labels for 5-digit (single-digit month) and 6-digit (double-digit month)
+  const PART_LABELS_5 = ['M', 'D', 'D', 'Y', 'Y'];
+  const PART_LABELS_6 = ['M', 'M', 'D', 'D', 'Y', 'Y'];
 
   // Get today's date in New York timezone
   function getTodayNY() {
@@ -798,7 +800,11 @@
   }
 
   function renderResults(mmddyy) {
-    const digits = mmddyy.split('');
+    // Strip leading zero from month for single-digit months (Jan–Sep)
+    const displayStr = mmddyy[0] === '0' ? mmddyy.slice(1) : mmddyy;
+    const digits = displayStr.split('');
+    const partLabels = digits.length === 5 ? PART_LABELS_5 : PART_LABELS_6;
+
     const resultsEl = document.getElementById('results');
     const cardsEl = document.getElementById('digitCards');
     const seqEl = document.getElementById('sequenceText');
@@ -810,7 +816,11 @@
 
     // Breakdown label
     const mm = mmddyy.slice(0, 2), dd = mmddyy.slice(2, 4), yy = mmddyy.slice(4, 6);
-    breakdownEl.innerHTML = `MMDDYY &rarr; <span>${mm}</span> / <span>${dd}</span> / <span>${yy}</span>`;
+    const mmDisplay = mm[0] === '0' ? mm[1] : mm; // strip leading zero for display
+    breakdownEl.innerHTML = `MMDDYY &rarr; <span>${mmDisplay}</span> / <span>${dd}</span> / <span>${yy}</span>`;
+
+    // Adjust grid columns dynamically
+    cardsEl.style.gridTemplateColumns = `repeat(${digits.length}, 1fr)`;
 
     // Digit cards
     cardsEl.innerHTML = '';
@@ -823,7 +833,7 @@
       card.className = 'digit-card';
       card.style.animationDelay = `${i * 0.05}s`;
       card.innerHTML = `
-        <div class="label">${PART_LABELS[i]}</div>
+        <div class="label">${partLabels[i]}</div>
         <div class="number">${d}</div>
         <div class="arrows">${info.arrows}</div>
         <div class="dirs">${info.dirs[0]}, ${info.dirs[1]}</div>
