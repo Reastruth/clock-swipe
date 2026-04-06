@@ -865,16 +865,45 @@
     resultsEl.classList.remove('visible');
   }
 
+  // iOS-safe clipboard copy
+  function copyToClipboard(text) {
+    return new Promise((resolve, reject) => {
+      // Try modern API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(resolve).catch(() => {
+          legacyCopy(text) ? resolve() : reject();
+        });
+      } else {
+        legacyCopy(text) ? resolve() : reject();
+      }
+    });
+  }
+
+  function legacyCopy(text) {
+    try {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.setAttribute('readonly', '');
+      el.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      el.setSelectionRange(0, el.value.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(el);
+      return ok;
+    } catch (e) { return false; }
+  }
+
   // Generic copy helper
   function copyText(text, btn, label) {
-    navigator.clipboard.writeText(text).then(() => {
+    copyToClipboard(text).then(() => {
       btn.classList.add('copied');
       if (label) {
         const prev = label.textContent;
         label.textContent = 'Copied!';
         setTimeout(() => { btn.classList.remove('copied'); label.textContent = prev; }, 1500);
       } else {
-        // swap icon to checkmark briefly
         const origHTML = btn.innerHTML;
         btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>';
         setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = origHTML; }, 1500);
@@ -926,15 +955,16 @@
     copyText(document.getElementById('sequenceText').textContent, this);
   });
 
-  // Copy All
+  // Copy All — plain values only, one per line (matches individual copy output)
   document.getElementById('copyAllBtn').addEventListener('click', function () {
     const r = document.getElementById('results');
-    const text = [
-      `Date: ${r.dataset.date}`,
-      `Days Ago: ${r.dataset.days}`,
-      `Day of Week: ${r.dataset.dow}`,
-      `Clock Swipe: ${r.dataset.seq}`
-    ].join('\n');
+    const lines = [
+      r.dataset.date,
+      r.dataset.days,
+      r.dataset.dow,
+      r.dataset.seq
+    ];
+    const text = lines.join('\n');
     const label = document.getElementById('copyAllLabel');
     copyText(text, this, label);
   });
