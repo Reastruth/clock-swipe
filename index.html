@@ -613,6 +613,16 @@
           <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         </button>
       </div>
+      <!-- Date numbers only -->
+      <div class="info-row">
+        <div class="info-col">
+          <div class="info-label">Date Numbers</div>
+          <div class="info-value" id="dateNumsValue"></div>
+        </div>
+        <button class="copy-sm" id="copyDateNumsBtn" title="Copy date numbers" type="button">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
       <!-- Days ago -->
       <div class="info-row">
         <div class="info-col">
@@ -841,14 +851,15 @@
       cardsEl.appendChild(card);
     });
 
-    // Full sequence
-    const fullSeq = arrowParts.join(' ');
+    // Full sequence — commas between each digit's arrows
+    const fullSeq = arrowParts.join(', ');
     seqEl.textContent = fullSeq;
 
     // Date info
     const info = getDateInfo(mmddyy);
     document.getElementById('todayValue').textContent = info.formattedToday;
     document.getElementById('inputDateValue').textContent = info.formattedInput;
+    document.getElementById('dateNumsValue').textContent = displayStr;
 
     const daysEl = document.getElementById('daysAgoValue');
     if (info.diffDays === 0) {
@@ -861,7 +872,11 @@
     document.getElementById('dowValue').textContent = info.dow;
 
     // Store data for Copy All
+    // daysNum = plain integer string, no comma, no label (for individual copy)
+    const daysNum = info.diffDays === 0 ? '0' : String(Math.abs(info.diffDays));
     resultsEl.dataset.date = info.formattedInput;
+    resultsEl.dataset.dateNums = displayStr;
+    resultsEl.dataset.daysNum = daysNum;
     resultsEl.dataset.days = info.daysLabel;
     resultsEl.dataset.dow = info.dow;
     resultsEl.dataset.seq = fullSeq;
@@ -955,8 +970,11 @@
     copyText(document.getElementById('inputDateValue').textContent, this);
   });
   document.getElementById('copyDaysBtn').addEventListener('click', function () {
-    const r = document.getElementById('results');
-    copyText(r.dataset.days, this);
+    // Copy number only — no comma, no "days ago"
+    copyText(document.getElementById('results').dataset.daysNum, this);
+  });
+  document.getElementById('copyDateNumsBtn').addEventListener('click', function () {
+    copyText(document.getElementById('results').dataset.dateNums, this);
   });
   document.getElementById('copyDowBtn').addEventListener('click', function () {
     copyText(document.getElementById('dowValue').textContent, this);
@@ -970,7 +988,8 @@
     const r = document.getElementById('results');
     const lines = [
       r.dataset.date,
-      r.dataset.days,
+      r.dataset.dateNums,
+      r.dataset.daysNum,
       r.dataset.dow,
       r.dataset.seq
     ];
